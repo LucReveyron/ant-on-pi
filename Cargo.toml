@@ -1,0 +1,12 @@
+[workspace]
+members = [
+    "crates/agent-core",
+    "crates/agent-interface",
+    "crates/inference",
+    "crates/encoder",
+    "crates/tools",
+    "crates/reminder",
+    "crates/task-scheduler",
+    "crates/function-caller",
+]
+resolver = "2"

@@ -1,0 +1,22 @@
+# ---- OS files ----
+.DS_Store
+# ---- Environment files ----
+.env
+.env.*
+*.local
+# ---- Cache ----
+.cache/
+*.cache
+__pycache__/
+*.pyc
+*.pyo
+# ---- IDE / Editors ----
+.vscode/
+.idea/
+*.swp
+*.swo
+# --- Database ---
+*.redb
+# ---- Build / dist ----
+/target
+

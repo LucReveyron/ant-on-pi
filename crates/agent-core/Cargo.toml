@@ -1,0 +1,13 @@
+[package]
+name = "agent-core"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# Point to the local folder
+agent-interface = { path = "../agent-interface" }
+task-scheduler = { path = "../task-scheduler"}
+
+# You also need these in the main agent to handle the async communication
+tokio = { version = "1", features = ["full"] }
+teloxide = { version = "0.13", features = ["macros"] }
