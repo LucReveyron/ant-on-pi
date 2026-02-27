@@ -84,7 +84,7 @@ pub fn offline_tools_embedding() -> Result<()> {
 
     // 4️⃣ Save result
     let output_json = serde_json::to_string_pretty(&enriched_tools)?;
-    fs::write("tools_embeddings.json", output_json)?;
+    fs::write("../encoder/tools_embeddings.json", output_json)?;
 
     println!("Embeddings saved to tools_embeddings.json");
 
@@ -106,7 +106,7 @@ pub fn find_top_n_tools(
     let query_embedding = encoder.encode(&prefixed_query)?;
 
     // 3️⃣ Load stored embeddings
-    let data = fs::read_to_string("tools_embeddings.json")?;
+    let data = fs::read_to_string("../encoder/tools_embeddings.json")?;
     let tools: Vec<ToolWithEmbedding> = serde_json::from_str(&data)?;
 
     // 4️⃣ Compute similarity scores

@@ -7,6 +7,7 @@ edition = "2024"
 # Point to the local folder
 agent-interface = { path = "../agent-interface" }
 task-scheduler = { path = "../task-scheduler"}
+encoder = { path = "../encoder"}
 
 # You also need these in the main agent to handle the async communication
 tokio = { version = "1", features = ["full"] }

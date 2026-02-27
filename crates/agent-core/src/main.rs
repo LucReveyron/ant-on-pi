@@ -3,6 +3,8 @@ mod command;
 use task_scheduler::scheduler::JobScheduler;
 use task_scheduler::store::RedbJobStore;
 use agent_interface::TelegramInterface;
+use encoder::Encoder;
+use encoder::find_top_n_tools;
 use std::sync::Arc;
 use tokio::time::{sleep, Duration};
 
@@ -12,6 +14,14 @@ async fn main() {
 
     let store = Arc::new(RedbJobStore::new("scheduler.redb"));
     let scheduler = Arc::new(JobScheduler::new(store));
+
+    let encoder = match Encoder::new() {
+        Ok(enc) => enc,
+        Err(e) => {
+            eprintln!("❌ Failed to initialize encoder: {e}");
+            return;
+        }
+    };
 
     let (signal_tx, mut signal_rx) = tokio::sync::mpsc::channel(32);
 
@@ -32,7 +42,10 @@ async fn main() {
                     command::LoopControl::Continue => {
                         // Only queue the message if it doesn't contain any commands
                         if !text.starts_with('\\') { // TODO: 02/27/26 Improve that by adding a new state to LoopControl
-                            scheduler.enqueue(chat_id, text);
+
+                            let result = find_top_n_tools(&encoder, &text, 1);
+                            let (name, _) = &result.unwrap()[0];
+                            scheduler.enqueue(chat_id, (&name).to_string());
                             let _ = interface.tx.send((chat_id, "Queued...".into())).await;
                         }
                     }
