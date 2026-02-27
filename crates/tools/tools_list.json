@@ -1,0 +1,60 @@
+{
+  "tools": [
+    {
+      "name": "save_appointment",
+      "description": "Register a meeting in my calendar.",
+      "arguments": {
+        "name": {
+          "type": "string",
+          "description": "Clear name for the event"
+        },
+        "destination": {
+          "type": "string",
+          "description": "Meeting location"
+        },
+        "date": {
+          "type": "string",
+          "description": "Meeting date in ISO format"
+        }
+      },
+      "examples": [
+        "I have a meeting next monday with Job Doe.",
+        "Save my doctor appointment for the 23/10/2026.",
+        "Job interview in three days"
+      ]
+    },
+
+    {
+      "name": "read_ios",
+      "description": "Read signals on IO to have access to sensors mesures.",
+      "arguments": {
+        "sensor_list": {
+          "type": "array",
+          "description": "List of sensors to read",
+          "items": { "type": "string" }
+        }
+      },
+      "examples": [
+        "Give me the temperature in your room.",
+        "I want all the measure you can get.",
+        "Measures please"
+      ]
+    },
+
+    {
+      "name": "ask_llm",
+      "description": "Send a text to the LLM model used by the agent.",
+      "arguments": {
+        "text": {
+          "type": "string",
+          "description": "Text from the user we want to send to the model"
+        }
+      },
+      "examples": [
+        "Ask the llm this : Can you write me a short Whatsapp message to demand more details about this subject",
+        "Give to the llm that : Make a function with float input and int16_t output that compute Q15 representation"
+      ]
+    }
+
+  ]
+}

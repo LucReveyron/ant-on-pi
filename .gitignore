@@ -17,6 +17,9 @@ __pycache__/
 *.swo
 # --- Database ---
 *.redb
+
+# --- Embedding ---
+.fastembed_cache
 # ---- Build / dist ----
 /target
 
