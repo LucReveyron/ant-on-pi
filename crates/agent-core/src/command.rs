@@ -2,7 +2,7 @@ use std::fmt;
 
 #[derive(Debug, PartialEq)]
 pub enum LoopControl {
-    Continue,
+    Continue(bool),
     Break,
 }
 
@@ -63,7 +63,7 @@ pub fn resolve_commands(input: &str) -> (LoopControl, Vec<String>) {
 
     let commands = identify_commands(input);
 
-    for cmd in commands {
+    for cmd in &commands {
 
         match cmd {
             Command::Shutdown => {
@@ -81,6 +81,6 @@ pub fn resolve_commands(input: &str) -> (LoopControl, Vec<String>) {
     if shutdown_encountered {
         (LoopControl::Break, responses)
     } else {
-        (LoopControl::Continue, responses)
+        (LoopControl::Continue(commands.is_empty()), responses)
     }
 }
