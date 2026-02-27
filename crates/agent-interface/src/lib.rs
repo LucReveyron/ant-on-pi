@@ -16,7 +16,7 @@ impl TelegramInterface {
 
         // Spawn the Telegram event loop in the background
         tokio::spawn(async move {
-            teloxide::repl(bot_for_repl, move |bot: Bot, msg: Message| {
+            teloxide::repl(bot_for_repl, move |_bot: Bot, msg: Message| {
                 let inbound_tx = inbound_tx.clone();
                 async move {
                     if let Some(text) = msg.text() {

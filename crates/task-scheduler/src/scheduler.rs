@@ -1,7 +1,7 @@
 use std::sync::Arc;
 use uuid::Uuid;
 use teloxide::types::ChatId;
-use crate::job::{Job, JobStatus};
+use crate::job::{Job, JobStatus, JobRole};
 use crate::store::RedbJobStore;
 
 pub struct JobScheduler {
@@ -14,7 +14,7 @@ impl JobScheduler {
     }
 
     /// Create a new job, assign it the next sequence number, persist and return it.
-    pub fn enqueue(&self, chat_id: ChatId, payload: String) -> Job {
+    pub fn enqueue(&self, chat_id: ChatId, payload: String, role: JobRole) -> Job {
         // ✅ Single atomic transaction — no race condition
         let sequence = self.store.next_sequence();
 
@@ -24,8 +24,22 @@ impl JobScheduler {
             sequence,
             payload,
             status: JobStatus::Pending,
+            role
         };
 
+        self.store.insert_job(&job);
+        job
+    }
+
+    /// Re-enqueue an existing job (e.g. next pipeline stage), preserving its chat_id and payload.
+    pub fn enqueue_job(&self, job: Job) -> Job {
+        let sequence = self.store.next_sequence();
+        let job = Job {
+            id: Uuid::new_v4(),
+            sequence,
+            status: JobStatus::Pending,
+            ..job
+        };
         self.store.insert_job(&job);
         job
     }
