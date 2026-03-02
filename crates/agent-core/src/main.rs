@@ -18,7 +18,7 @@ async fn main() {
     let scheduler = Arc::new(JobScheduler::new(store));
 
     let encoder = match Encoder::new() {
-        Ok(enc) => enc,
+        Ok(enc) => Arc::new(enc),
         Err(e) => {
             eprintln!("❌ Failed to initialize encoder: {e}");
             return;
@@ -45,18 +45,17 @@ async fn main() {
                         // Only queue the message if it doesn't contain any commands
                         if is_empty { 
 
-                            let result = find_top_n_tools(&encoder, &text, 1);
-                            let (name, _) = &result.unwrap()[0];
-                            let payload = format!("Task: {}; msg: {}", name, text); 
+                            scheduler.enqueue(chat_id, Some(text),  "".to_string(), JobRole::Embed);
 
-                            scheduler.enqueue(chat_id, payload, JobRole::Embed);
+                            // Acknowledge the user
                             let _ = interface.tx.send((chat_id, "Queued...".into())).await;
 
                             // If nothing is running, kick off immediately
                             if let Some(job) = scheduler.next_job() {
                                 let tx = signal_tx.clone();
+                                let encoder = encoder.clone();
                                 tokio::spawn(async move {
-                                    let result = process_job(&job).await;
+                                    let result = process_job(&job, &encoder).await;
                                     let _ = tx.send(result).await;
                                 });
                             }
@@ -88,8 +87,9 @@ async fn main() {
                 // Always try to dispatch the next queued job
                 if let Some(next_job) = scheduler.next_job() {
                     let tx = signal_tx.clone();
+                    let encoder = encoder.clone();
                     tokio::spawn(async move {
-                        let result = process_job(&next_job).await;
+                        let result = process_job(&next_job, &encoder).await;
                         let _ = tx.send(result).await;
                     });
                 }
@@ -105,16 +105,25 @@ async fn main() {
 }
 
 /// Dispatch the actual work based on the job's current role
-async fn process_job(job: &Job) -> Job {
+async fn process_job(job: &Job, encoder: &Arc<Encoder>) -> Job {
     match job.role {
         JobRole::Embed => {
-            tokio::time::sleep(Duration::from_millis(200)).await;
-            // e.g. call embedding model, store result in payload
-            Job { payload: format!("[embedded] {}", job.payload), ..job.clone() }
+            // Embed user message is available, else treat directly payload
+            let text = match &job.user_message {
+                Some(t) => t,
+                None => &job.payload
+            };
+
+            // Find closer tool
+            let result = find_top_n_tools(&encoder, &text, 1);
+            let (name, _) = &result.unwrap()[0];
+            let payload = format!("Task: {}", name);
+            Job { payload: payload, ..job.clone() }
         }
         JobRole::Interpret => {
             tokio::time::sleep(Duration::from_millis(300)).await;
-            // e.g. semantic analysis
+            // TODO: 03/02/26 - Implement and call ask_llm
+            // e.g. use LLM to interprete messages using embedding info. 
             Job { payload: format!("[interpreted] {}", job.payload), ..job.clone() }
         }
         JobRole::Call => {

@@ -22,6 +22,7 @@ pub struct Job {
     pub id: uuid::Uuid,
     pub chat_id: ChatId,
     pub sequence: u64,
+    pub user_message: Option<String>,
     pub payload: String,
     pub status: JobStatus,
     pub role: JobRole

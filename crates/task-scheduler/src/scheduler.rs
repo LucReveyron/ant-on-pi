@@ -14,7 +14,7 @@ impl JobScheduler {
     }
 
     /// Create a new job, assign it the next sequence number, persist and return it.
-    pub fn enqueue(&self, chat_id: ChatId, payload: String, role: JobRole) -> Job {
+    pub fn enqueue(&self, chat_id: ChatId, user_message: Option<String>, payload: String, role: JobRole) -> Job {
         // ✅ Single atomic transaction — no race condition
         let sequence = self.store.next_sequence();
 
@@ -22,6 +22,7 @@ impl JobScheduler {
             id: Uuid::new_v4(),
             chat_id,
             sequence,
+            user_message,
             payload,
             status: JobStatus::Pending,
             role
