@@ -78,6 +78,7 @@ async fn main() {
                         let _ = interface.tx.send((job.chat_id, reply)).await;
                     }
                     _ => {
+                        // Update job
                         if let Some(next_stage) = job.next_role() {
                             scheduler.enqueue_job(next_stage);
                         }
@@ -114,6 +115,7 @@ async fn process_job(job: &Job, encoder: &Arc<Encoder>) -> Job {
                 None => &job.payload
             };
 
+            // TODO: 03/02/26 - Generalise to make a liste of closer tools if needed
             // Find closer tool
             let result = find_top_n_tools(&encoder, &text, 1);
             let (name, _) = &result.unwrap()[0];
@@ -128,10 +130,13 @@ async fn process_job(job: &Job, encoder: &Arc<Encoder>) -> Job {
         }
         JobRole::Call => {
             tokio::time::sleep(Duration::from_millis(500)).await;
+            // TODO: 03/02/26 - Call function caller to dispatch call to the correct tool if don't find, 
+            // recall ask_llm to re-interprete calling info.
             // e.g. LLM call or tool use
             Job { payload: format!("[called] {}", job.payload), ..job.clone() }
         }
         JobRole::Respond => {
+            // TODO: 03/02/26 - Based on result, save result in file, update a database or generate a message for the user
             // Final formatting before reply
             Job { payload: format!("[response] {}", job.payload), ..job.clone() }
         }
