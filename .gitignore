@@ -20,6 +20,9 @@ __pycache__/
 
 # --- Embedding ---
 .fastembed_cache
+
+# --- Model ---
+/crates/agent-core/models/
+/crates/inference/models/
 # ---- Build / dist ----
 /target
-

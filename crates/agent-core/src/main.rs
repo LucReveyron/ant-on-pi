@@ -9,6 +9,7 @@ use encoder::Encoder;
 use encoder::find_top_n_tools;
 use std::sync::Arc;
 use tokio::time::{Duration};
+use inference::LlmEngine;
 
 #[tokio::main]
 async fn main() {
@@ -16,6 +17,7 @@ async fn main() {
 
     let store = Arc::new(RedbJobStore::new("scheduler.redb"));
     let scheduler = Arc::new(JobScheduler::new(store));
+    let engine = Arc::new(LlmEngine::new().unwrap());
 
     let encoder = match Encoder::new() {
         Ok(enc) => Arc::new(enc),
@@ -54,8 +56,9 @@ async fn main() {
                             if let Some(job) = scheduler.next_job() {
                                 let tx = signal_tx.clone();
                                 let encoder = encoder.clone();
+                                let engine = engine.clone();
                                 tokio::spawn(async move {
-                                    let result = process_job(&job, &encoder).await;
+                                    let result = process_job(&job, &encoder, &engine).await;
                                     let _ = tx.send(result).await;
                                 });
                             }
@@ -89,8 +92,9 @@ async fn main() {
                 if let Some(next_job) = scheduler.next_job() {
                     let tx = signal_tx.clone();
                     let encoder = encoder.clone();
+                    let engine = engine.clone();
                     tokio::spawn(async move {
-                        let result = process_job(&next_job, &encoder).await;
+                        let result = process_job(&next_job, &encoder, &engine).await;
                         let _ = tx.send(result).await;
                     });
                 }
@@ -106,7 +110,7 @@ async fn main() {
 }
 
 /// Dispatch the actual work based on the job's current role
-async fn process_job(job: &Job, encoder: &Arc<Encoder>) -> Job {
+async fn process_job(job: &Job, encoder: &Arc<Encoder>, engine: &Arc<LlmEngine>) -> Job {
     match job.role {
         JobRole::Embed => {
             // Embed user message is available, else treat directly payload
@@ -123,10 +127,12 @@ async fn process_job(job: &Job, encoder: &Arc<Encoder>) -> Job {
             Job { payload: payload, ..job.clone() }
         }
         JobRole::Interpret => {
-            tokio::time::sleep(Duration::from_millis(300)).await;
-            // TODO: 03/02/26 - Implement and call ask_llm
             // e.g. use LLM to interprete messages using embedding info. 
-            Job { payload: format!("[interpreted] {}", job.payload), ..job.clone() }
+            let question = format!("{}", job.user_message.as_ref().unwrap());
+
+            let answer = engine.ask_llm(question).unwrap();
+
+            Job { payload: format!("[interpreted] {}", answer), ..job.clone() }
         }
         JobRole::Call => {
             tokio::time::sleep(Duration::from_millis(500)).await;
