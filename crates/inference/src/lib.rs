@@ -14,7 +14,7 @@ use thiserror::Error;
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const MODEL_DIR: &str = "models";
+const MODEL_DIR: &str = "../inference/models";
 const MODEL_FILE: &str = "Llama-3.2-1B-Instruct-Q8_0.gguf";
 const HF_REPO_ID: &str = "bartowski/Llama-3.2-1B-Instruct-GGUF";
 const CONTEXT_SIZE: u32 = 512;
