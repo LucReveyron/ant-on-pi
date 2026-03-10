@@ -4,6 +4,8 @@
 
 # Raspberry Pi Micro-Agent
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 ### Advancement of the project
 
 - [x] Communication with user
@@ -68,3 +70,20 @@ stateDiagram-v2
     UpdateJob --> AcknowledgeUser
 
 ```
+
+## Dependencies
+
+* **[fastembed](https://docs.rs/fastembed/latest/fastembed/)** – Fast local text embedding generation using modern embedding models. Useful for semantic search, retrieval pipelines, and vector similarity tasks.
+
+* **[llama-cpp-2](https://docs.rs/llama-cpp-2/latest/llama_cpp_2/)** – Rust bindings for `llama.cpp`, enabling local inference of LLaMA-compatible large language models with CPU or GPU acceleration.
+
+* **[encoding-rs](https://docs.rs/encoding_rs/latest/encoding_rs/)** – High-performance character encoding and decoding library supporting UTF-8 and legacy encodings (used for robust text processing and normalization).
+
+* **[teloxide](https://docs.rs/teloxide/latest/teloxide/)** – Framework for building Telegram bots in Rust with async support and a high-level API over the Telegram Bot API.
+
+* **[redb](https://www.redb.org/)** – Embedded, high-performance key-value database written in Rust designed as a lightweight alternative to systems like LMDB or RocksDB.
+
+## License
+
+This project is licensed under the MIT License.
+Feel free to use or modify it according to your project's needs.
