@@ -127,12 +127,19 @@ async fn process_job(job: &Job, encoder: &Arc<Encoder>, engine: &Arc<LlmEngine>)
             Job { payload: payload, ..job.clone() }
         }
         JobRole::Interpret => {
+            // TODO: 03/03/26 - Add question for each type of tools ? 
+            // ask_llm -> send raw message
+            // other : ask to extract inputs
             // e.g. use LLM to interprete messages using embedding info. 
-            let question = format!("{}", job.user_message.as_ref().unwrap());
+            let question = if job.payload.contains("ask_llm") {
+                format!("{}", job.user_message.as_ref().unwrap())
+            } else {
+                "Echo : Not done...".to_string()
+            };
 
             let answer = engine.ask_llm(question).unwrap();
 
-            Job { payload: format!("[interpreted] {}", answer), ..job.clone() }
+            Job { payload: format!("[interpreted] {}:{}",job.payload, answer), ..job.clone() }
         }
         JobRole::Call => {
             tokio::time::sleep(Duration::from_millis(500)).await;
