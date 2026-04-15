@@ -59,9 +59,9 @@ impl LlmEngine {
 
     /// Feed `text` directly to the model and return the generated response.
     pub fn ask_llm(&self, text: String) -> Result<String, LlmError> {
-        // Format the input to follow the instruction/response structure
+        // Llama-3 instruct chat template
         let formatted_prompt = format!(
-            "### Instruction:\n{} \n ### Response: \n",
+            "<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n{}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
             text
         );
 
@@ -80,16 +80,8 @@ impl LlmEngine {
             .map_err(|e| LlmError::Inference(e.to_string()))?;
 
         let response = generate_tokens(&mut ctx, &self.model, &mut batch, tokens.len())?;
-        
-        // Post-process to extract only the response after "### Response:"
-        let clean_response = response
-            .split("### Response:")
-            .last()
-            .unwrap_or(&response)
-            .trim()
-            .to_string();
 
-        Ok(clean_response)
+        Ok(response)
     }
 }
 
@@ -210,14 +202,20 @@ fn generate_tokens(
     let mut n_past = prompt_len as i32;
 
     for _ in 0..MAX_NEW_TOKENS {
-        // fix: sample() now takes the context and last token index
         let next_token = sampler.sample(ctx, batch.n_tokens() - 1);
 
         if next_token == model.token_eos() {
             break;
         }
 
-        response.push_str(&decode_token_to_string(model, next_token)?);
+        let piece = decode_token_to_string(model, next_token)?;
+
+        // Llama-3 uses <|eot_id|> as the end-of-turn marker instead of EOS
+        if piece.contains("<|eot_id|>") || piece.contains("<|end_of_text|>") {
+            break;
+        }
+
+        response.push_str(&piece);
         advance_context(ctx, batch, next_token, n_past)?;
         n_past += 1;
     }
